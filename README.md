@@ -1,0 +1,95 @@
+# ScheduledJob
+
+Scheduled job looks to build on top of the [delayed_job](https://github.com/collectiveidea/delayed_job) project by adding support for jobs that need to recur. Whilst investigating other options we decided that we wanted a very light weight framework that would simply allow us to define worker tasks that need to happen on a regular basis.
+
+In order to achieve this we created the following interface which allows the developer to consisly define what the job is to do as well as when it is to run. This helps keep all the logic in one place which is a huge plus.
+
+In terms of implementation there are only a couple of things we need to do.
+
+Firstly if there are any before or success callbacks you need to define you can do this via the configure block. This passes the instance of DelayedJob that run your job as well as the job itself.
+
+We can also take this opportunity to set up any logging. By default we use the ruby logger but if you are using rails for example you can do something like the following:
+
+```ruby
+ScheduledJob.configure do |config|
+  config.before_callback = -> (job, scheduled_job) do
+    JobRunLogger.update_attributes!(job_name: scheduled_job.class.name, started_at: Time.now.utc)
+  end
+
+  config.success_callback = -> (job, _) do
+    ScheduledJob.logger.info("Hurrah my job #{job.id} has completed")
+  end
+
+  config.logger = Rails.logger
+end
+```
+
+With this in place we can go on to define a job that we want to run regularly. To do this just mix in the scheduled job module in your class, define a perform method and define a time to recur.
+
+```ruby
+class WeeklyMetricJob
+  include ::ScheduledJob
+
+  def perform
+    ScheduledJob.logger.info('I need to do something over and over')
+  end
+
+  def self.time_to_recur(last_run_at)
+    last_run_at.end_of_week + 3.hours
+  end
+end
+```
+
+This allows you so specify what logic you need to run along side how often it needs to run. The time to recur is passed the completion time of the last successful run so you can use whatever logic you like in here to define when the job needs to run again.
+
+Finally you need to kick off the job the first time. Once it has run successfully it will look after itself but to start the cycle you need to run schedule_job on your job. Continuing on the example above:
+
+```ruby
+WeeklyMetricJob.schedule_job
+```
+
+Note currently this implementation is dependant upon using the [delayed_job_active_record](https://github.com/collectiveidea/delayed_job_active_record) backend. This is something that we may be looking to remove in future.
+
+## Running the specs
+
+This is the default rake task so you can run the specs in any of the following ways:
+
+```bash
+bundle exec rake
+bundle exec rake spec
+bundle exec rspec
+```
+
+## Getting a console
+
+The project is currently using pry. In order to get a console in the context of the project just run the pry.rb file in ruby.
+
+```bash
+bundle exec ruby pry.rb
+```
+
+## Installation
+
+Add this line to your application's Gemfile:
+
+    gem 'scheduled_job'
+
+And then execute:
+
+    $ bundle
+
+Or install it yourself as:
+
+    $ gem install scheduled_job
+
+## Usage
+
+TODO: Write usage instructions here
+
+## Contributing
+
+1. Fork it ( http://github.com/<my-github-username>/scheduled_job/fork )
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request
