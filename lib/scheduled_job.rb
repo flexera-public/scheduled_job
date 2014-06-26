@@ -18,7 +18,7 @@ module ScheduledJob
   end
 
   class Config
-    attr_accessor :logger, :before_callback, :success_callback
+    attr_accessor :logger, :before_callback, :success_callback, :fast_mode
 
     def initialize
       @logger = Logger.new(STDOUT)
@@ -57,7 +57,12 @@ module ScheduledJob
     # other instances of the job are already running.
     def schedule_job(job = nil)
       unless job_exists?(job)
-        Delayed::Job.enqueue(new, :run_at => time_to_recur(Time.now.utc), :queue => queue_name)
+        callback = ScheduledJob.config.fast_mode
+        in_fast_mode = callback ? callback.call(self) : false
+
+        run_at = in_fast_mode ? Time.now.utc : time_to_recur(Time.now.utc)
+
+        Delayed::Job.enqueue(new, :run_at => run_at, :queue => queue_name)
       end
     end
 

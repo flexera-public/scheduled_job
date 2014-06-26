@@ -20,6 +20,40 @@ describe ScheduledJob do
 
   let(:under_test) { UnderTest.new }
 
+  describe 'fast mode' do
+    before { expect(Delayed::Job).to receive(:exists?).and_return(false) }
+
+    context 'when the job is not in run fast mode' do
+      it 'uses the value from time to recur' do
+        Delayed::Job.should_receive(:enqueue).with(anything, {
+          :run_at => UnderTest.time_to_recur(nil),
+          :queue  => UnderTest.queue_name
+        })
+        UnderTest.schedule_job
+      end
+    end
+
+    context 'when the job is in run fast mode' do
+      before do
+        ScheduledJob.configure do |config|
+          config.fast_mode = -> (_) do
+            true
+          end
+        end
+      end
+      it 'uses the current time' do
+        time = Time.now.utc
+        Time.stub_chain(:now, :utc) { time }
+
+        Delayed::Job.should_receive(:enqueue).with(anything, {
+          :run_at => time,
+          :queue  => UnderTest.queue_name
+        })
+        UnderTest.schedule_job
+      end
+    end
+  end
+
   it "implements the required interface" do
     expect(UnderTest).to respond_to :queue_name
     expect(under_test).to respond_to :perform
