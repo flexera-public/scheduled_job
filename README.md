@@ -84,7 +84,61 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+First you must include the scheduled job module in any DelayedJob that needs to run on a regular basis.
+
+```ruby
+include ::ScheduledJob
+```
+
+Then you need to say what the job is acutally to do. This is done by implementing the permform method.
+
+```ruby
+def perform
+  puts 'I do work!'
+end
+```
+
+Finaly we need to write the logic for when we want the job to run. This is done by implementing the time_to_recur method which is passed the time the job last completed as its parameter.
+
+```ruby
+def self.time_to_recur(last_run_at)
+  last_run_at + 3.hours
+end
+```
+
+There are also callbacks that are available using ScheduledJob. These allow you to hook into the scheduling life cycle. Also note that as this uses DelayedJob under the hood all of the delayed job callbacks are still available for use.
+
+These can be defined when configuring the gem for you application on the configure block:
+
+```ruby
+ScheduledJob.configure do |config|
+  # configuration code in here
+end
+```
+
+The before_callback is executed before the perform method is called on the scheduled job. This is passed the delayed job object and the scheduled job instance.
+
+```ruby 
+config.before_callback = -> (job, scheduled_job) do
+  JobRunLogger.update_attributes!(job_name: scheduled_job.class.name, started_at: Time.now.utc)
+end
+```
+
+The success_callback is called on sucessful completion of the job and is also passed the delayed job object and the scheduled job instance.
+
+```ruby
+config.success_callback = -> (job, _) do
+  ScheduledJob.logger.info("Hurrah my job #{job.id} has completed")
+end
+```
+
+Then there is the fast mode. This is checked prior to scheduling another run of your job e.g. after a job has completed. This allows you to override the scheduling logic and ask the job to run immediatly. This is passed the scheduled job class. This means you can have state stored elsewhere to change the scheduling without having to modify the code. This could be getting an array from a database for example:
+
+```ruby
+config.fast_mode = -> (job) do
+  Database.get_value('fast_mode_jobs').include?(job.name)
+end
+```
 
 ## Contributing
 
