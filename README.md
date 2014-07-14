@@ -142,8 +142,14 @@ end
 
 ## Contributing
 
-1. Fork it ( http://github.com/<my-github-username>/scheduled_job/fork )
+1. Fork it ( https://github.com/rightscale/scheduled_job/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## Contributors
+- [Callum Dryden](https://github.com/CallumD)
+- [Alistair Scott](https://github.com/aliscott)
+- [Sean McGivern](https://github.com/smcgivern)
+- [Ali Khajeh-Hosseini](https://github.com/alikhajeh1)

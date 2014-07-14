@@ -6,11 +6,11 @@ require 'scheduled_job/version'
 Gem::Specification.new do |spec|
   spec.name          = "scheduled_job"
   spec.version       = ScheduledJob::VERSION
-  spec.authors       = ["Charcoal Team RightScale"]
-  spec.email         = ["charcoal.sprint@rightscale.com"]
+  spec.authors       = ["CallumD", "aliscott", "smcgivern", "alikhajeh1"]
+  spec.email         = ["callum.dryden@rightscale.com", "alistair@rightscale.com", "sean.mcgivern@rightscale.com", "ali@rightscale.com"]
   spec.summary       = %q{Adding support for jobs that need to reccur}
   spec.description   = %q{By including the scheduled job module in a delayed job you can specify when you would like the job to run again. Currently this is intented to be used with the active record back end this may change in future.}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/rightscale/scheduled_job"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
