@@ -1,0 +1,9 @@
+ruby do
+  version  '2.1.1'
+  gemset   'scheduled_job'
+end
+bundler do
+  version     '1.5.3'
+  exclusions  'deployment'
+  bundle_path File.join(ENV["HOME"], '.rightscale', 'scheduled_job')
+end
