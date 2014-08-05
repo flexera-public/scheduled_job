@@ -118,7 +118,7 @@ end
 
 The before_callback is executed before the perform method is called on the scheduled job. This is passed the delayed job object and the scheduled job instance.
 
-```ruby 
+```ruby
 config.before_callback = -> (job, scheduled_job) do
   JobRunLogger.update_attributes!(job_name: scheduled_job.class.name, started_at: Time.now.utc)
 end
@@ -148,7 +148,7 @@ end
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
 
-## Contributors
+## Maintained by
 - [Callum Dryden](https://github.com/CallumD)
 - [Alistair Scott](https://github.com/aliscott)
 - [Sean McGivern](https://github.com/smcgivern)
