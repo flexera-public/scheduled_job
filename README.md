@@ -149,6 +149,7 @@ end
 5. Create new Pull Request
 
 ## Maintained by
+
 - [Callum Dryden](https://github.com/CallumD)
 - [Alistair Scott](https://github.com/aliscott)
 - [Sean McGivern](https://github.com/smcgivern)
