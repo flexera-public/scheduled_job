@@ -25,7 +25,7 @@ describe ScheduledJob do
 
     context 'when the job is not in run fast mode' do
       it 'uses the value from time to recur' do
-        Delayed::Job.should_receive(:enqueue).with(anything, {
+        expect(Delayed::Job).to receive(:enqueue).with(anything, {
           :run_at => UnderTest.time_to_recur(nil),
           :queue  => UnderTest.queue_name
         })
@@ -43,9 +43,9 @@ describe ScheduledJob do
       end
       it 'uses the current time' do
         time = Time.now.utc
-        Time.stub_chain(:now, :utc) { time }
+        allow(Time).to receive_message_chain(:now, :utc) { time }
 
-        Delayed::Job.should_receive(:enqueue).with(anything, {
+        expect(Delayed::Job).to receive(:enqueue).with(anything, {
           :run_at => time,
           :queue  => UnderTest.queue_name
         })
@@ -67,10 +67,10 @@ describe ScheduledJob do
 
   it "schedules a new job on success" do
     expect(UnderTest).to receive(:schedule_job)
-    Delayed::Job.stub(:enqueue)
+    allow(Delayed::Job).to receive(:enqueue)
     underTestJob = double("UnderTestJob");
-    underTestJob.stub(:run_at) { DateTime.now.utc }
-    underTestJob.stub(:id) { 1 }
+    allow(underTestJob).to receive(:run_at) { DateTime.now.utc }
+    allow(underTestJob).to receive(:id) { 1 }
     under_test.before underTestJob
     under_test.success underTestJob
   end
@@ -81,11 +81,11 @@ describe ScheduledJob do
 
   it "logs the error and schedules a job on failure" do
     dummy_job = double("job")
-    dummy_job.stub(:id)
+    allow(dummy_job).to receive(:id)
     expect(dummy_job).to receive(:update_attributes!)
     expect(ScheduledJob.logger).to receive(:error)
     expect(UnderTest).to receive(:schedule_job)
-    Delayed::Job.stub(:enqueue)
+    allow(Delayed::Job).to receive(:enqueue)
     under_test.failure(dummy_job)
   end
 
@@ -95,17 +95,17 @@ describe ScheduledJob do
 
   it "logs on error" do
     job = double("job")
-    job.stub(:id) { 4 }
+    allow(job).to receive(:id) { 4 }
     expect(ScheduledJob.logger).to receive(:warn)
-    UnderTest.stub(:schedule_job)
+    allow(UnderTest).to receive(:schedule_job)
     under_test.error job, nil
   end
 
     it "wraps delayed job with scheduled_job" do
       job = double("job")
-      job.stub(:id) { 4 }
+      allow(job).to receive(:id) { 4 }
       instance = double("instance")
-      UnderTest.stub(:new) { instance }
+      allow(UnderTest).to receive(:new) { instance }
       expect(Delayed::Job).to receive(:exists?).and_return(false)
       expect(Delayed::Job).to receive(:enqueue).with(instance, run_at: "time to recur", queue: "TESTING")
       UnderTest.schedule_job job
@@ -113,7 +113,7 @@ describe ScheduledJob do
 
     it "scheduled a job even if there is total failure and an existing job" do
       dummy_job = double("job")
-      dummy_job.stub(:id)
+      allow(dummy_job).to receive(:id)
       expect(dummy_job).to receive(:update_attributes!)
       expect(Delayed::Job).to receive(:exists?).twice.and_return(false)
       expect(Delayed::Job).to receive(:enqueue).exactly(2).times
