@@ -36,9 +36,7 @@ describe ScheduledJob do
     context 'when the job is in run fast mode' do
       before do
         ScheduledJob.configure do |config|
-          config.fast_mode = lambda do |_|
-            true
-          end
+          config.fast_mode = lambda { |_| true }
         end
       end
       it 'uses the current time' do
