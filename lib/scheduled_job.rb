@@ -60,7 +60,7 @@ module ScheduledJob
         callback = ScheduledJob.config.fast_mode
         in_fast_mode = callback ? callback.call(self) : false
 
-        run_at = in_fast_mode ? Time.now.utc : time_to_recur(Time.now.utc)
+        run_at = in_fast_mode ? Time.now.utc + 1 : time_to_recur(Time.now.utc)
 
         Delayed::Job.enqueue(new, :run_at => run_at, :queue => queue_name)
       end

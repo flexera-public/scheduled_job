@@ -39,12 +39,12 @@ describe ScheduledJob do
           config.fast_mode = lambda { |_| true }
         end
       end
-      it 'uses the current time' do
+      it 'uses the current time plus one second' do
         time = Time.now.utc
         allow(Time).to receive_message_chain(:now, :utc) { time }
 
         expect(Delayed::Job).to receive(:enqueue).with(anything, {
-          :run_at => time,
+          :run_at => time + 1,
           :queue  => UnderTest.queue_name
         })
         UnderTest.schedule_job
