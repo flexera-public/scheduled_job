@@ -20,6 +20,20 @@ describe ScheduledJob do
 
   let(:under_test) { UnderTest.new }
 
+  describe '.config' do
+    context 'without .configure call' do
+      before do
+        # Reload ScheduledJob class
+        Object.send :remove_const, :ScheduledJob if Object.const_defined? :ScheduledJob
+        load 'scheduled_job.rb'
+      end
+
+      it 'has default value' do
+        expect(ScheduledJob.config).not_to be_nil
+      end
+    end
+  end
+
   describe 'fast mode' do
     before { expect(Delayed::Job).to receive(:exists?).and_return(false) }
 
@@ -99,25 +113,25 @@ describe ScheduledJob do
     under_test.error job, nil
   end
 
-    it "wraps delayed job with scheduled_job" do
-      job = double("job")
-      allow(job).to receive(:id) { 4 }
-      instance = double("instance")
-      allow(UnderTest).to receive(:new) { instance }
-      expect(Delayed::Job).to receive(:exists?).and_return(false)
-      expect(Delayed::Job).to receive(:enqueue).with(instance, run_at: "time to recur", queue: "TESTING")
-      UnderTest.schedule_job job
-    end
+  it "wraps delayed job with scheduled_job" do
+    job = double("job")
+    allow(job).to receive(:id) { 4 }
+    instance = double("instance")
+    allow(UnderTest).to receive(:new) { instance }
+    expect(Delayed::Job).to receive(:exists?).and_return(false)
+    expect(Delayed::Job).to receive(:enqueue).with(instance, run_at: "time to recur", queue: "TESTING")
+    UnderTest.schedule_job job
+  end
 
-    it "scheduled a job even if there is total failure and an existing job" do
-      dummy_job = double("job")
-      allow(dummy_job).to receive(:id)
-      expect(dummy_job).to receive(:update_attributes!)
-      expect(Delayed::Job).to receive(:exists?).twice.and_return(false)
-      expect(Delayed::Job).to receive(:enqueue).exactly(2).times
-      UnderTest.schedule_job
-      under_test.failure(dummy_job)
-    end
+  it "scheduled a job even if there is total failure and an existing job" do
+    dummy_job = double("job")
+    allow(dummy_job).to receive(:id)
+    expect(dummy_job).to receive(:update_attributes!)
+    expect(Delayed::Job).to receive(:exists?).twice.and_return(false)
+    expect(Delayed::Job).to receive(:enqueue).exactly(2).times
+    UnderTest.schedule_job
+    under_test.failure(dummy_job)
+  end
 
   describe '#random_minutes' do
     it 'returns a random number with a base and delta' do

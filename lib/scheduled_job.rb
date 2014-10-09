@@ -5,7 +5,10 @@ require 'delayed_job_active_record'
 
 module ScheduledJob
   class << self
-    attr_accessor :config
+    attr_writer :config
+    def config
+      @config ||= Config.new
+    end
   end
 
   def self.logger
@@ -13,7 +16,6 @@ module ScheduledJob
   end
 
   def self.configure
-    self.config ||= Config.new
     yield(config)
   end
 
