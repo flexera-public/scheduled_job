@@ -1,5 +1,7 @@
 # ScheduledJob
 
+[![Build Status](https://travis-ci.org/rightscale/scheduled_job.svg?branch=master)](https://travis-ci.org/rightscale/scheduled_job)
+
 Scheduled job looks to build on top of the [delayed_job](https://github.com/collectiveidea/delayed_job) project by adding support for jobs that need to recur. Whilst investigating other options we decided that we wanted a very light weight framework that would simply allow us to define worker tasks that need to happen on a regular basis.
 
 In order to achieve this we created the following interface which allows the developer to consisly define what the job is to do as well as when it is to run. This helps keep all the logic in one place which is a huge plus.
