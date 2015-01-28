@@ -78,7 +78,7 @@ module ScheduledJob
     end
 
     def job_exists?(job = nil)
-      conditions = ['handler like ? AND failed_at IS NULL', "%#{self.name}%"]
+      conditions = ['handler like ? AND failed_at IS NULL', "%:#{self.name} %"]
       unless job.blank?
         conditions[0] << " AND id != ?"
         conditions << job.id
