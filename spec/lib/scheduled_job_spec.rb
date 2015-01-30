@@ -126,7 +126,7 @@ describe ScheduledJob do
     UnderTest.schedule_job job
   end
 
-  pending 'doesnt find substring jobs as existing' do
+  it 'doesnt find substring jobs as existing' do
     UnderTest.schedule_job
     Test.schedule_job
     expect(Delayed::Job.count).to eq(2)
