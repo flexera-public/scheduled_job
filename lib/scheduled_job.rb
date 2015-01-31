@@ -2,6 +2,7 @@ require "scheduled_job/version"
 require 'logger'
 require 'delayed_job'
 require 'delayed_job_active_record'
+require File.dirname(__FILE__) + '/tasks/jobs.rb'
 
 module ScheduledJob
   class << self
@@ -28,7 +29,13 @@ module ScheduledJob
   end
 
   def self.included(base)
+    @classes ||= []
+    @classes << base.name.constantize
     base.extend ScheduledJobClassMethods
+  end
+
+  def self.classes
+    @classes
   end
 
   def before(job)
