@@ -4,6 +4,9 @@ SimpleCov.start
 require 'bundler/setup'
 Bundler.setup
 
+require_relative '../db/connect'
+Db::Connect.init
+
 require 'scheduled_job' # and any other gems you need
 require 'logger'
 
