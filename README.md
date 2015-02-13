@@ -92,7 +92,7 @@ First you must include the scheduled job module in any DelayedJob that needs to 
 include ::ScheduledJob
 ```
 
-Then you need to say what the job is acutally to do. This is done by implementing the permform method.
+Then you need to say what the job is actually to do. This is done by implementing the perform method.
 
 ```ruby
 def perform
@@ -100,13 +100,25 @@ def perform
 end
 ```
 
-Finaly we need to write the logic for when we want the job to run. This is done by implementing the time_to_recur method which is passed the time the job last completed as its parameter.
+Finally we need to write the logic for when we want the job to run. This is done by implementing the time_to_recur method which is passed the time the job last completed as its parameter.
 
 ```ruby
 def self.time_to_recur(last_run_at)
   last_run_at + 3.hours
 end
 ```
+
+Recently added is the new jobs configuration. This adds two major new benefits. Firstly this will allow you to define jobs that are allow to run in multiple instances. Say for example that there should always be two instances of a given job running. This can now be defined using the following configuration:
+
+```ruby
+ScheduledJob.configure do |config|
+  config.jobs = {
+    MyAwesomeParallelJobClass => { count: 2 }
+  }
+end
+```
+
+This lets scheduled job know that it is OK to have two pending job instances for MyAwesomeParallelJobClass in the delayed job table. Additionally by using this configuration you also get access to the new reschedule rake task for free. ScheduledJob now adds `rake jobs:reschedule`. This will loop through your jobs configuration and automatically call schedule job up to the number of times you intend the jobs pending. This is useful for heavy users of scheduled job to "prime" your database with your recurring jobs. Note you can still add jobs to this configuration that you do not want any instances of by setting the count to 0. This is useful if you are looking to access all classes you have that you have registered with scheduled job.
 
 There are also callbacks that are available using ScheduledJob. These allow you to hook into the scheduling life cycle. Also note that as this uses DelayedJob under the hood all of the delayed job callbacks are still available for use.
 
@@ -126,7 +138,7 @@ config.before_callback = -> (job, scheduled_job) do
 end
 ```
 
-The success_callback is called on sucessful completion of the job and is also passed the delayed job object and the scheduled job instance.
+The success_callback is called on successful completion of the job and is also passed the delayed job object and the scheduled job instance.
 
 ```ruby
 config.success_callback = -> (job, _) do
@@ -134,7 +146,7 @@ config.success_callback = -> (job, _) do
 end
 ```
 
-Then there is the fast mode. This is checked prior to scheduling another run of your job e.g. after a job has completed. This allows you to override the scheduling logic and ask the job to run immediatly. This is passed the scheduled job class. This means you can have state stored elsewhere to change the scheduling without having to modify the code. This could be getting an array from a database for example:
+Then there is the fast mode. This is checked prior to scheduling another run of your job e.g. after a job has completed. This allows you to override the scheduling logic and ask the job to run immediately. This is passed the scheduled job class. This means you can have state stored elsewhere to change the scheduling without having to modify the code. This could be getting an array from a database for example:
 
 ```ruby
 config.fast_mode = -> (job) do

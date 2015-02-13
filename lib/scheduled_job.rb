@@ -5,11 +5,22 @@ require 'delayed_job_active_record'
 require File.dirname(__FILE__) + '/tasks/jobs.rb'
 
 module ScheduledJob
+  class ConfigError < StandardError
+  end
+
   class << self
     attr_writer :config
     def config
       @config ||= Config.new
     end
+  end
+
+  def self.reschedule
+    config.jobs.each do |job, options|
+      options[:count].times do
+        job.schedule_job
+      end
+    end if config.jobs
   end
 
   def self.logger
@@ -18,24 +29,27 @@ module ScheduledJob
 
   def self.configure
     yield(config)
+    validate_job_hash(config.jobs) if config.jobs
+  end
+
+  def self.validate_job_hash(jobs)
+    jobs.each do |klass, options|
+      raise ConfigError.new("Jobs config found invalid class: #{klass}") unless klass.class == Class
+      raise ConfigError.new("Jobs config found invalid job count: #{options[:count]}") unless options[:count].to_i >= 0
+    end
   end
 
   class Config
-    attr_accessor :logger, :before_callback, :success_callback, :fast_mode
+    attr_accessor :logger, :before_callback, :success_callback, :fast_mode, :jobs
 
     def initialize
+      @jobs ||= {}
       @logger = Logger.new(STDOUT)
     end
   end
 
   def self.included(base)
-    @classes ||= []
-    @classes << base.name.constantize
     base.extend ScheduledJobClassMethods
-  end
-
-  def self.classes
-    @classes
   end
 
   def before(job)
@@ -65,7 +79,7 @@ module ScheduledJob
     # This method should be called when scheduling a recurring job as it checks to ensure no
     # other instances of the job are already running.
     def schedule_job(job = nil)
-      unless job_exists?(job)
+      if can_schedule_job?(job)
         callback = ScheduledJob.config.fast_mode
         in_fast_mode = callback ? callback.call(self) : false
 
@@ -84,13 +98,20 @@ module ScheduledJob
       (base + Random.new.rand((-1 * random_delta)..random_delta)).minutes
     end
 
-    def job_exists?(job = nil)
+    def can_schedule_job?(job = nil)
       conditions = ['(handler like ? OR handler like ?) AND failed_at IS NULL', "%:#{self.name} %", "%:#{self.name}\n%"]
       unless job.blank?
         conditions[0] << " AND id != ?"
         conditions << job.id
       end
-      Delayed::Job.exists?(conditions)
+      job_count = Delayed::Job.where(conditions).count
+      intended_job_count = 1
+
+      if ScheduledJob.config.jobs && ScheduledJob.config.jobs[self.name]
+        intended_job_count = ScheduledJob.config.jobs[self.name][:count]
+      end
+
+      job_count < intended_job_count
     end
 
     def run_duration_threshold
