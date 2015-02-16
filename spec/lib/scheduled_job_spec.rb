@@ -20,6 +20,7 @@ class Test < UnderTest
 end
 
 describe ScheduledJob do
+  before { ScheduledJob.configure { |config| config.jobs = nil } }
 
   let(:under_test) { UnderTest.new }
 
@@ -37,8 +38,59 @@ describe ScheduledJob do
     end
   end
 
+  describe 'job config' do
+    it 'takes a jobs hash config' do
+      expect {
+        ScheduledJob.configure do |config|
+          config.jobs = {
+            UnderTest => { count: 1 }
+          }
+        end
+      }.not_to raise_error
+    end
+
+    context 'validates the job hash' do
+      it 'detects an bad job class' do
+        expect {
+          ScheduledJob.configure do |config|
+            config.jobs = {
+              'UnderTest' => { count: 1 }
+            }
+          end
+        }.to raise_error(ScheduledJob::ConfigError)
+      end
+
+      it 'detects a bad job count' do
+        expect {
+          ScheduledJob.configure do |config|
+            config.jobs = {
+              UnderTest => { count: -1 }
+            }
+          end
+        }.to raise_error(ScheduledJob::ConfigError)
+      end
+    end
+  end
+
+  describe 'reschedule' do
+    before do
+      ScheduledJob.configure do |config|
+        config.jobs = {
+          UnderTest => { count: 1 },
+          Test      => { count: 5 }
+        }
+      end
+    end
+
+    it 'calls reschedule on all config jobs up to the job count limit' do
+      expect(UnderTest).to receive(:schedule_job).once
+      expect(Test).to receive(:schedule_job).exactly(5).times
+      ScheduledJob.reschedule
+    end
+  end
+
   describe 'fast mode' do
-    before { expect(Delayed::Job).to receive(:exists?).and_return(false) }
+    before { expect(Delayed::Job).to receive(:where).and_return([]) }
 
     context 'when the job is not in run fast mode' do
       it 'uses the value from time to recur' do
@@ -121,7 +173,7 @@ describe ScheduledJob do
     allow(job).to receive(:id) { 4 }
     instance = double("instance")
     allow(UnderTest).to receive(:new) { instance }
-    expect(Delayed::Job).to receive(:exists?).and_return(false)
+    expect(Delayed::Job).to receive(:where).and_return([])
     expect(Delayed::Job).to receive(:enqueue).with(instance, run_at: "time to recur", queue: "TESTING")
     UnderTest.schedule_job job
   end
@@ -136,7 +188,7 @@ describe ScheduledJob do
     dummy_job = double("job")
     allow(dummy_job).to receive(:id)
     expect(dummy_job).to receive(:update_attributes!)
-    expect(Delayed::Job).to receive(:exists?).twice.and_return(false)
+    expect(Delayed::Job).to receive(:where).twice.and_return([])
     expect(Delayed::Job).to receive(:enqueue).exactly(2).times
     UnderTest.schedule_job
     under_test.failure(dummy_job)
