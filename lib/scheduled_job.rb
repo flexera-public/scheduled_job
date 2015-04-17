@@ -18,6 +18,8 @@ module ScheduledJob
   def self.reschedule
     config.jobs.each do |job, options|
       options[:count].times do
+        job = job.to_s if job.is_a?(Symbol)
+        job = job.constantize if job.is_a?(String)
         job.schedule_job
       end
     end if config.jobs
@@ -34,7 +36,7 @@ module ScheduledJob
 
   def self.validate_job_hash(jobs)
     jobs.each do |klass, options|
-      raise ConfigError.new("Jobs config found invalid class: #{klass}") unless klass.class == Class
+      raise ConfigError.new("Jobs config found invalid class: #{klass}") unless klass.is_a?(Class) || klass.is_a?(Symbol) || klass.is_a?(String)
       raise ConfigError.new("Jobs config found invalid job count: #{options[:count]}") unless options[:count].to_i >= 0
     end
   end
