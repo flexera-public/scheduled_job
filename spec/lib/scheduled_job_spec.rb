@@ -39,35 +39,52 @@ describe ScheduledJob do
   end
 
   describe 'job config' do
-    it 'takes a jobs hash config' do
-      expect {
+    let(:job_class) { UnderTest }
+    let(:job_count) { 1 }
+
+    let(:configure) do
+      lambda do
         ScheduledJob.configure do |config|
-          config.jobs = {
-            UnderTest => { count: 1 }
-          }
+          config.jobs = { job_class => { count: job_count } }
         end
-      }.not_to raise_error
+      end
     end
 
-    context 'validates the job hash' do
-      it 'detects an bad job class' do
-        expect {
-          ScheduledJob.configure do |config|
-            config.jobs = {
-              'UnderTest' => { count: 1 }
-            }
-          end
-        }.to raise_error(ScheduledJob::ConfigError)
+    context 'job class is a class' do
+      it 'considers the jobs hash valid' do
+        expect(configure).not_to raise_error
       end
+    end
 
-      it 'detects a bad job count' do
-        expect {
-          ScheduledJob.configure do |config|
-            config.jobs = {
-              UnderTest => { count: -1 }
-            }
-          end
-        }.to raise_error(ScheduledJob::ConfigError)
+    context 'job class is a string' do
+      let(:job_class) { 'UnderTest' }
+
+      it 'considers the jobs hash valid' do
+        expect(configure).not_to raise_error
+      end
+    end
+
+    context 'job class is a symbol' do
+      let(:job_class) { :UnderTest }
+
+      it 'considers the jobs hash valid' do
+        expect(configure).not_to raise_error
+      end
+    end
+
+    context 'job class is not a class, string, or symbol' do
+      let(:job_class) { 1 }
+
+      it 'raises ConfigError' do
+        expect(configure).to raise_error(ScheduledJob::ConfigError)
+      end
+    end
+
+    context 'job count is not a non-negative integer' do
+      let(:job_count) { -1 }
+
+      it 'raises ConfigError' do
+        expect(configure).to raise_error(ScheduledJob::ConfigError)
       end
     end
   end
@@ -77,7 +94,7 @@ describe ScheduledJob do
       ScheduledJob.configure do |config|
         config.jobs = {
           UnderTest => { count: 1 },
-          Test      => { count: 5 }
+          :Test     => { count: 5 }
         }
       end
     end
