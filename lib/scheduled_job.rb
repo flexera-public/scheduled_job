@@ -91,10 +91,6 @@ module ScheduledJob
       end
     end
 
-    def queue_name
-      "Default"
-    end
-
     def random_minutes(base, random_delta)
       random_delta *= -1 if random_delta < 0
       (base + Random.new.rand((-1 * random_delta)..random_delta)).minutes
