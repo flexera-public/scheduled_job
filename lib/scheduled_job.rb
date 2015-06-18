@@ -123,7 +123,7 @@ module ScheduledJob
     end
 
     def queue_name
-      "Default"
+      Delayed::Worker.default_queue_name
     end
   end
 end
