@@ -115,5 +115,9 @@ module ScheduledJob
     def run_duration_threshold
       self.const_defined?(:RUN_DURATION_THRESHOLD) ? self::RUN_DURATION_THRESHOLD : nil
     end
+
+    def queue_name
+      Delayed::Worker.default_queue_name
+    end
   end
 end
