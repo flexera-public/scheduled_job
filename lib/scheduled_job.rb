@@ -59,35 +59,41 @@ module ScheduledJob
     callback.call(job, self) if callback
   end
 
+  @params = nil
   def success(job)
     callback = ScheduledJob.config.success_callback
     callback.call(job, self) if callback
     GC.start
-    self.class.schedule_job(job)
+    self.class.schedule_job(job, @params)
   end
 
   def failure(job)
     ScheduledJob.logger.error("DelayedJob failed: processing job in queue #{self.class.queue_name} failed")
     job.update_attributes!(:failed_at => Time.now)
-    self.class.schedule_job
+    self.class.schedule_job(nil, @params)
   end
 
   def error(job, exception)
     ScheduledJob.logger.warn("DelayedJob error: Job: #{job.id}, in queue #{self.class.queue_name}, exception: #{exception}")
-    self.class.schedule_job
+    self.class.schedule_job(nil, @params)
   end
 
   module ScheduledJobClassMethods
     # This method should be called when scheduling a recurring job as it checks to ensure no
     # other instances of the job are already running.
-    def schedule_job(job = nil)
+
+    def schedule_job(job = nil, params = nil)
       if can_schedule_job?(job)
         callback = ScheduledJob.config.fast_mode
         in_fast_mode = callback ? callback.call(self) : false
 
         run_at = in_fast_mode ? Time.now.utc + 1 : time_to_recur(Time.now.utc)
 
-        Delayed::Job.enqueue(new, :run_at => run_at, :queue => queue_name)
+        if params
+          Delayed::Job.enqueue(new(*params), :run_at => run_at, :queue => queue_name)
+        else
+          Delayed::Job.enqueue(new, :run_at => run_at, :queue => queue_name)
+        end
       end
     end
 
@@ -114,6 +120,10 @@ module ScheduledJob
 
     def run_duration_threshold
       self.const_defined?(:RUN_DURATION_THRESHOLD) ? self::RUN_DURATION_THRESHOLD : nil
+    end
+
+    def queue_name
+      Delayed::Worker.default_queue_name
     end
   end
 end
