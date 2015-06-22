@@ -68,7 +68,7 @@ module ScheduledJob
 
   def failure(job)
     ScheduledJob.logger.error("DelayedJob failed: processing job in queue #{self.class.queue_name} failed")
-    job.update_attributes!(:failed_at => Time.now)
+    job.update_attributes!(:failed_at => Time.now.utc)
     self.class.schedule_job
   end
 
