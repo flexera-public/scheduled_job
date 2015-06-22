@@ -25,3 +25,6 @@ Adds a config to allow the scheduling for more than one instance of the same job
 
 # 0.1.1
 Allows jobs in config to be strings, symbols, or classes. If a string or symbol is provided, it will be resolved to a constant before scheduling the job.
+
+# 0.1.2
+Falls back to the Delayed Job default queue name if none is provided. Ensures that the run at is set using UTC timezone. Updates specs to run on the latest ruby version on CI.
