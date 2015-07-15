@@ -28,3 +28,7 @@ Allows jobs in config to be strings, symbols, or classes. If a string or symbol 
 
 # 0.1.2
 Falls back to the Delayed Job default queue name if none is provided. Ensures that the run at is set using UTC timezone. Updates specs to run on the latest ruby version on CI.
+
+# 0.1.3
+Gracefully handle the case when the delayed_job table doesn't exist but `rake jobs:reschedule` is called.
+This is needed is some cases where scheduled_job is deployed in a container and the container needs to start so the table can be created.

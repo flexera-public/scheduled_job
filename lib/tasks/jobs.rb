@@ -8,7 +8,11 @@ module ScheduledJob
       namespace:jobs do
         desc "Will schedule all scheduled jobs"
         task :reschedule => :environment do
-          ScheduledJob.reschedule
+          if ActiveRecord::Base.connection.table_exists?('delayed_jobs')
+            ScheduledJob.reschedule
+          else
+            puts "Skipping this rake task as the delayed_jobs table doesn't exist yet."
+          end
         end
       end
     end
