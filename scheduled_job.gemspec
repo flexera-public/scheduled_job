@@ -27,4 +27,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "pry"
   spec.add_development_dependency "simplecov"
   spec.add_development_dependency "sqlite3", "~> 1.3.10"
+  spec.add_development_dependency 'coveralls'
 end
