@@ -18,8 +18,8 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_runtime_dependency "delayed_job", "< 4.1"
-  spec.add_runtime_dependency "delayed_job_active_record", "< 4.1"
+  spec.add_runtime_dependency "delayed_job", "< 4.2"
+  spec.add_runtime_dependency "delayed_job_active_record", "< 4.2"
 
   spec.add_development_dependency "bundler", "~> 1.5"
   spec.add_development_dependency "rake", "~> 0.9"

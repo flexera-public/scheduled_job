@@ -32,3 +32,6 @@ Falls back to the Delayed Job default queue name if none is provided. Ensures th
 # 0.1.3
 Gracefully handle the case when the delayed_job table doesn't exist but `rake jobs:reschedule` is called.
 This is needed is some cases where scheduled_job is deployed in a container and the container needs to start so the table can be created.
+
+# 0.2.3
+Updating the acitve* gem dependency versions to support the current release. Also drops travis testing for ruby 1.9.3 which is no longer an officially supported Ruby version.
