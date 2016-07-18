@@ -98,10 +98,8 @@ module ScheduledJob
 
     def can_schedule_job?(job = nil)
       conditions = 'failed_at IS NULL'
-      unless job.blank?
-        conditions << " AND id != "
-        conditions << job.id
-      end
+      conditions << " AND id != #{job.id}" unless job.blank?
+
       jobs = Delayed::Job.where(conditions).find_all do |dj|
         dj.handler.split[1][/(?<=:)[A-Z][A-z0-9:]+/] == self.name
       end
