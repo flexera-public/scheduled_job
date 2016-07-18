@@ -16,6 +16,12 @@ class UnderTest
   end
 end
 
+class Job
+  def id
+    12
+  end
+end
+
 class Test < UnderTest
 end
 
@@ -218,6 +224,10 @@ describe ScheduledJob do
     expect(Delayed::Job).to receive(:enqueue).exactly(2).times
     UnderTest.schedule_job
     under_test.failure(dummy_job)
+  end
+
+  it "can scheduled additional instances of a given job" do
+    expect { UnderTest.schedule_job(Job.new) }.not_to raise_error
   end
 
   describe '#random_minutes' do
