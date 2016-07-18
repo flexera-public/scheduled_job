@@ -97,12 +97,17 @@ module ScheduledJob
     end
 
     def can_schedule_job?(job = nil)
-      conditions = ['(handler like ? OR handler like ?) AND failed_at IS NULL', "%:#{self.name} %", "%:#{self.name}\n%"]
+      conditions = 'failed_at IS NULL'
       unless job.blank?
-        conditions[0] << " AND id != ?"
+        conditions << " AND id != "
         conditions << job.id
       end
-      job_count = Delayed::Job.where(conditions).count
+      jobs = Delayed::Job.where(conditions).find_all do |dj|
+        dj.handler.split[1][/(?<=:)[A-Z][A-z0-9:]+/] == self.name
+      end
+
+      job_count = jobs.count
+
       intended_job_count = 1
 
       if ScheduledJob.config.jobs && ScheduledJob.config.jobs[self.name]
