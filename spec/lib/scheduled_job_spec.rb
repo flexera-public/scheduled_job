@@ -20,7 +20,10 @@ class Test < UnderTest
 end
 
 describe ScheduledJob do
-  before { ScheduledJob.configure { |config| config.jobs = nil } }
+  before do
+    ScheduledJob.configure { |config| config.jobs = nil }
+    Delayed::Job.delete_all
+  end
 
   let(:under_test) { UnderTest.new }
 
@@ -193,6 +196,12 @@ describe ScheduledJob do
     expect(Delayed::Job).to receive(:where).and_return([])
     expect(Delayed::Job).to receive(:enqueue).with(instance, run_at: "time to recur", queue: "TESTING")
     UnderTest.schedule_job job
+  end
+
+  it 'doesnt find delayed methods as existing' do
+    UnderTest.delay.queue_name
+    UnderTest.schedule_job
+    expect(Delayed::Job.count).to eq(2)
   end
 
   it 'doesnt find substring jobs as existing' do

@@ -35,3 +35,6 @@ This is needed is some cases where scheduled_job is deployed in a container and 
 
 # 0.2.3
 Updating the acitve* gem dependency versions to support the current release. Also drops travis testing for ruby 1.9.3 which is no longer an officially supported Ruby version.
+
+# 0.2.4
+Updates the way that we detect if an instance of a job has already been scheduled. This was because we were incorrectly seeing a delayed method as an instance of that job already being scheduled.
